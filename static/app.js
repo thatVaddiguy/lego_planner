@@ -25,6 +25,7 @@
     resultGrid: $('result-grid'), partsBody: $('parts-body'),
     rowPrev: $('row-prev'), rowNext: $('row-next'), rowInput: $('row-input'), rowTotal: $('row-total'),
     rowStrip: $('row-strip'), runs: $('runs'),
+    viewer3d: $('viewer3d'), viewer3dStatus: $('viewer3d-status'), cellTip3d: $('cell-tip-3d'), reset3d: $('reset-3d'),
   };
 
   const state = {
@@ -38,6 +39,8 @@
     snapshot: null,      // inventory + custom palette used for the last plan
     view: 'mosaic',
     row: 0,
+    viewer3d: null,      // 'mounted' | 'failed' once the 3D module has loaded or failed
+    viewer3dShown: null, // result currently loaded into the 3D scene
   };
 
   // ───────── Helpers ─────────
@@ -510,6 +513,7 @@
     els.rowHighlight.hidden = false;
     els.rowHighlight.style.top = `calc(${(y / r.height) * 100}% - 2px)`;
     els.rowHighlight.style.height = `calc(${100 / r.height}% + 4px)`;
+    if (state.viewer3d === 'mounted') window.Mosaic3D.setRow(y);
   }
 
   function goToRow(y) {
@@ -528,6 +532,17 @@
   });
 
   // Hover tooltip + click-to-select row on the mosaic.
+  function showCellTip(tip, cell, left, top) {
+    const color = state.result.grid[cell.y][cell.x];
+    tip.textContent = '';
+    const text = document.createElement('span');
+    text.textContent = `Row ${cell.y + 1}, col ${cell.x + 1} · ${prettyName(color)}`;
+    tip.append(swatch(state.result.palette[color]), text);
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+    tip.hidden = false;
+  }
+
   function cellAt(e) {
     const r = state.result;
     const rect = els.preview.getBoundingClientRect();
@@ -541,14 +556,7 @@
     if (!state.result) return;
     const cell = cellAt(e);
     if (!cell) { els.cellTip.hidden = true; return; }
-    const color = state.result.grid[cell.y][cell.x];
-    els.cellTip.textContent = '';
-    const text = document.createElement('span');
-    text.textContent = `Row ${cell.y + 1}, col ${cell.x + 1} · ${prettyName(color)}`;
-    els.cellTip.append(swatch(state.result.palette[color]), text);
-    els.cellTip.style.left = `${e.clientX - cell.rect.left}px`;
-    els.cellTip.style.top = `${e.clientY - cell.rect.top}px`;
-    els.cellTip.hidden = false;
+    showCellTip(els.cellTip, cell, e.clientX - cell.rect.left, e.clientY - cell.rect.top);
   });
   els.preview.addEventListener('mouseleave', () => { els.cellTip.hidden = true; });
   els.preview.addEventListener('click', (e) => {
@@ -564,9 +572,45 @@
       b.setAttribute('aria-selected', String(b.dataset.view === view));
     });
     if (!state.result) return;
-    els.stage.querySelector('.view-mosaic').hidden = view === 'original';
-    els.stage.querySelector('.view-original').hidden = view === 'mosaic';
+    els.stage.querySelector('.view-mosaic').hidden = view === 'original' || view === '3d';
+    els.stage.querySelector('.view-original').hidden = view === 'mosaic' || view === '3d';
+    els.stage.querySelector('.view-3d').hidden = view !== '3d';
+    sync3d();
   }
+
+  // ───────── 3D view ─────────
+  function mount3d() {
+    if (state.viewer3d || !window.Mosaic3D) return;
+    window.Mosaic3D.mount(els.viewer3d, {
+      onHover: (cell) => {
+        if (cell) showCellTip(els.cellTip3d, cell, cell.left, cell.top);
+        else els.cellTip3d.hidden = true;
+      },
+      onPick: (cell) => goToRow(cell.y),
+    });
+    state.viewer3d = 'mounted';
+    els.viewer3dStatus.hidden = true;
+  }
+
+  function sync3d() {
+    const on = state.view === '3d' && !!state.result;
+    if (on) mount3d();
+    if (state.viewer3d !== 'mounted') return;
+    if (on && state.viewer3dShown !== state.result) {
+      window.Mosaic3D.setActive(true); // sizes the canvas before the camera is framed
+      window.Mosaic3D.setMosaic(state.result);
+      window.Mosaic3D.setRow(state.row);
+      state.viewer3dShown = state.result;
+    }
+    window.Mosaic3D.setActive(on);
+  }
+
+  window.addEventListener('mosaic3d-ready', sync3d);
+  $('viewer3d-script').addEventListener('error', () => {
+    state.viewer3d = 'failed';
+    els.viewer3dStatus.textContent = 'The 3D viewer could not load. Check your internet connection and reload the page.';
+  });
+  els.reset3d.addEventListener('click', () => window.Mosaic3D?.resetView());
   document.querySelectorAll('.segmented [data-view]').forEach((b) => {
     b.addEventListener('click', () => setView(b.dataset.view));
   });

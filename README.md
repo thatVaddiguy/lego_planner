@@ -15,6 +15,7 @@ Upload an image, pick a size, tell the planner how many 1×1 pieces of each colo
 - **Brick meter**: shows whether you have enough bricks before you generate.
 - **Inventory-aware matching**: each stud gets the closest color you still have in stock. The most confident matches are placed first, so scarce colors go where they matter most.
 - **Interactive preview**: switch between mosaic, original, and side-by-side views. Hover a stud to see its row, column, and color.
+- **3D view**: see the finished build as real bricks with studs on a baseplate. Drag to rotate, scroll or pinch to zoom, right-drag to pan. The current build-guide row is highlighted, and clicking a brick jumps to its row. (Loads three.js from a CDN, so it needs an internet connection.)
 - **Build guide**: step through the mosaic row by row (arrow keys work too). Each row is grouped into runs such as `5× black, 3× blue`. The current row is highlighted on the mosaic, and you can click any row to jump to it.
 - **Parts list**: shows how many bricks of each color the mosaic uses and how many are left over.
 - **Export**: a ZIP with placements, written instructions, a parts list, and a preview image.
