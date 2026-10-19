@@ -365,6 +365,34 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, .dropzone:foc
   pointer-events: none;
   display: flex; align-items: center; gap: 7px;
 }
+.view-3d { align-self: stretch; }
+.viewer3d {
+  position: relative;
+  width: 100%;
+  height: min(70vh, 640px);
+  min-height: 320px;
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+}
+.viewer3d-canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.viewer3d-canvas:active { cursor: grabbing; }
+.viewer3d-status {
+  position: absolute; inset: 0; margin: 0;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 16px; color: var(--muted); font-weight: 600; line-height: 1.4;
+}
+.viewer3d-hud {
+  position: absolute; left: 10px; right: 10px; bottom: 10px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  pointer-events: none; line-height: 1.3;
+}
+.viewer3d-hud span {
+  font-size: 12.5px; color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  padding: 5px 9px; border-radius: 8px;
+}
+.viewer3d-hud button { pointer-events: auto; }
 .cell-tip .swatch { width: 14px; height: 14px; border-radius: 4px; }
 .cell-tip .swatch::after { display: none; }
 

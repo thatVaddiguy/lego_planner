@@ -131,6 +131,7 @@
             <button type="button" role="tab" data-view="mosaic" aria-selected="true">Mosaic</button>
             <button type="button" role="tab" data-view="original" aria-selected="false">Original</button>
             <button type="button" role="tab" data-view="compare" aria-selected="false">Side by side</button>
+            <button type="button" role="tab" data-view="3d" aria-selected="false">3D</button>
           </div>
           <button type="button" id="export-btn" class="btn btn-secondary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
@@ -156,6 +157,16 @@
           <figure class="view view-original" hidden>
             <div class="img-wrap"><img id="original" alt="Original image, resized to the mosaic proportions" /></div>
             <figcaption>Original</figcaption>
+          </figure>
+          <figure class="view view-3d" hidden>
+            <div class="viewer3d" id="viewer3d">
+              <div class="cell-tip" id="cell-tip-3d" hidden></div>
+              <p class="viewer3d-status" id="viewer3d-status">Loading 3D viewer…</p>
+              <div class="viewer3d-hud">
+                <span>Drag to rotate · Scroll or pinch to zoom · Right-drag to pan</span>
+                <button type="button" class="btn btn-ghost btn-sm" id="reset-3d">Reset view</button>
+              </div>
+            </div>
           </figure>
 
           <div class="loading" id="loading" hidden>
@@ -200,6 +211,15 @@
   </main>
 
   <script>window.PLANNER_CONFIG = {{ config_json | safe }};</script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" id="viewer3d-script" src="{{ url_for('static', filename='viewer3d.js') }}"></script>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
